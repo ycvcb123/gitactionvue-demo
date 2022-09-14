@@ -1,7 +1,10 @@
 name: Build and Deploy
-on: [push]
-permissions:
-  contents: write
+on:
+  push:
+    branches: [master]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   build-and-deploy:
     concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
@@ -10,21 +13,48 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
+      - name: use pnpm
+        uses: pnpm/action-setup@646cdf48217256a3d0b80361c5a50727664284f2
+        with:
+          version: 6.10.0
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
-          cache: "npm"
-      - run: |
-          npm ci
-          npm run build
+          node-version: "14"
+          cache: "pnpm"
 
-      # - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
-      #   run: |
-      #     npm ci
-      #     npm run build
+      - uses: actions/cache@v2
+        id: pnpm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+        with:
+          path: |
+            ~/.pnpm-store
+            D:\.pnpm-store
+            **/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}
+
+      - name: Install Dependencies
+        if: steps.pnpm-cache.outputs.cache-hit != 'true'
+        run: pnpm i
+
+      - name: Build Project
+        run: |
+          pnpm run build
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4.3.0
         with:
+          branch: gh-pages # The branch the action should deploy to.
           folder: dist # The folder the action should deploy.
 
+
+      # - name: rsync deployments
+      #   uses: burnett01/rsync-deployments@5.2
+      #   with:
+      #     switches: -avzr --delete
+      #     path: dist/
+      #     remote_path: /home/demo-site
+      #     remote_host: hw.prod.toimc.com
+      #     remote_port: 8822
+      #     remote_user: root
+      #     remote_key: ${{ secrets.DEPLOY_KEY }}
