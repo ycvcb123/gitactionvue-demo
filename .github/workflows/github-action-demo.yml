@@ -1,0 +1,14 @@
+name: github action demo
+on: [push]
+jobs: 
+  check-github-actions:
+    runs-on: ubuntu-latest
+    steps: 
+      - run: echo "${{github.event_name}}"
+      - run: echo "${{runner.os}}"
+      - name: check out repo code
+        uses: actions/checkout@v2
+      - run: echo "${{github.repository}} has be cloned"
+      - name: list files in the repo
+        run: |
+          ls ${{github.workspace}}
