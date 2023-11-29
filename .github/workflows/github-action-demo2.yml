@@ -1,0 +1,14 @@
+name: github action demo
+on: [push]
+jobs: 
+  check-github-actions:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+      - run: node --version
+      - run: npm install -g typescript
+      - run: tsc --version
+
+      
