@@ -1,7 +1,7 @@
 name: github action demo
 on: [push]
 jobs: 
-  check-github-actions:
+  check-github-demo2:
     runs-on: ubuntu-latest
     steps: 
       - uses: actions/setup-node@v4
